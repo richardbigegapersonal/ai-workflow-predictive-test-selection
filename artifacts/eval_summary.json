@@ -1,0 +1,6 @@
+{
+  "avg_precision_val": 0.37384054779275616,
+  "mean_fail_coverage": 0.9203650078547608,
+  "mean_tests_selected": 300.0,
+  "compute_savings_vs_12k": 0.975
+}

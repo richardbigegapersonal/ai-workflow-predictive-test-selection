@@ -1,0 +1,35 @@
+name: ci
+on:
+  push: { branches: [ main ] }
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Train
+        run: python src/train.py
+      - name: Evaluate
+        run: python src/evaluate.py
+      - name: Gate on coverage & savings
+        run: |
+          python - << 'PY'
+          import json, sys
+          s=json.load(open("artifacts/eval_summary.json"))
+          # soft-example gates; tune for your data
+          if s["mean_fail_coverage"] < 0.92: 
+              print("Gate fail: coverage too low", s); sys.exit(1)
+          if s["compute_savings_vs_12k"] < 0.90:
+              print("Gate fail: not enough savings", s); sys.exit(1)
+          print("Gates OK:", s)
+          PY
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-artifacts
+          path: artifacts/
